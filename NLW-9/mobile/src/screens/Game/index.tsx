@@ -11,12 +11,14 @@ import { styles } from './styles';
 
 import { GameParams } from '../../@types/navigation';
 import { Heading } from '../../Components/Background/Heading';
+import {DuoMatch} from '../../Components/DuoMatch'
 import { DuoCard, DuoCardProps } from '../../Components/Background/DuoCard';
 import { useEffect, useState } from 'react';
 
 
 export function Game() {
   const [duos, setDuos] = useState<DuoCardProps[]>([]);
+  const [discordDuoSelected, setDiscordDuoSelected] = useState('');
 
   const navigation = useNavigation();
   const route = useRoute();
@@ -26,8 +28,14 @@ export function Game() {
     navigation.goBack();
   }
 
+  async function getDiscordUser(adsId: string) {
+    fetch(`https://86a9-179-225-239-148.sa.ngrok.io/ads/${adsId}/discord`)
+    .then(response => response.json())
+    .then(data => setDiscordDuoSelected(data.discord));
+  }
+
   useEffect(() => {
-    fetch(`https://0c72-179-225-239-170.sa.ngrok.io/games/${game.id}/ads`)
+    fetch(`https://86a9-179-225-239-148.sa.ngrok.io/games/${game.id}/ads`)
     .then(response => response.json())
     .then(data => setDuos(data));
   }, []);
@@ -69,12 +77,12 @@ export function Game() {
       keyExtractor={item => item.id}
       renderItem={({item}) => (
         <DuoCard data = {item} 
-        onConnect = {() => { }}
+        onConnect = {() => getDiscordUser(item.id)}
         />
       )}
       horizontal
       style={styles.containerList}
-      contentContainerStyle={[duos.length > 0 ?   styles.contentList : styles.emptyListContent]}
+      contentContainerStyle={[duos.length > 0 ?  styles.contentList : styles.emptyListContent]}
       showsHorizontalScrollIndicator={false}      
       ListEmptyComponent = {() => (
         <Text style={styles.emptyListText}>
@@ -83,7 +91,11 @@ export function Game() {
       )}
       
       />
-
+      <DuoMatch
+        visible={discordDuoSelected.length > 0}
+        discord= {discordDuoSelected}
+        onClose={() => setDiscordDuoSelected('')}
+      />
     </SafeAreaView>
     </Background>
   );
